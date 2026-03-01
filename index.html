@@ -77,6 +77,30 @@
         text-shadow: 0 0 10px rgba(68, 190, 255, 0.4);
       }
 
+      .setup {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .setup .panel {
+        padding: 9px 10px;
+      }
+
+      .setup select {
+        width: 100%;
+        border: 1px solid rgba(120, 188, 255, 0.35);
+        border-radius: 8px;
+        background: rgba(10, 20, 44, 0.85);
+        color: var(--text);
+        padding: 7px 8px;
+      }
+
+      .setup-actions {
+        margin-bottom: 12px;
+      }
+
       .board {
         position: relative;
         display: grid;
@@ -257,6 +281,54 @@
           0 0 30px rgba(101, 63, 255, 0.7);
       }
 
+      .cell.food-silver {
+        border-color: rgba(206, 239, 255, 0.85);
+        background:
+          radial-gradient(circle at 38% 30%, #ffffff, rgba(255, 255, 255, 0.6) 24%, transparent 52%),
+          radial-gradient(circle at 58% 58%, #b4dbf8, #75a6cc 80%);
+        box-shadow:
+          0 0 20px rgba(202, 238, 255, 0.88),
+          0 0 28px rgba(149, 201, 241, 0.75);
+      }
+
+      .cell.food-golden {
+        border-color: rgba(255, 234, 168, 0.9);
+        background:
+          radial-gradient(circle at 38% 30%, #fff7cf, rgba(255, 247, 207, 0.62) 24%, transparent 52%),
+          radial-gradient(circle at 58% 58%, #ffd86d, #d49e2e 80%);
+        box-shadow:
+          0 0 22px rgba(255, 224, 130, 0.9),
+          0 0 32px rgba(245, 176, 45, 0.76);
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+        background: rgba(6, 12, 30, 0.35);
+      }
+
+      .overlay.active {
+        display: flex;
+      }
+
+      .countdown-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 2px solid rgba(120, 208, 255, 0.65);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 42px;
+        font-weight: 700;
+        background: rgba(11, 26, 56, 0.84);
+        box-shadow: 0 0 24px rgba(70, 194, 255, 0.45);
+      }
+
       .actions {
         display: flex;
         flex-wrap: wrap;
@@ -303,9 +375,41 @@
         font-size: 13px;
       }
 
+      .next-button {
+        width: 100%;
+        margin-top: 14px;
+        font-size: 20px;
+        padding: 12px 14px;
+      }
+
+      .stats {
+        margin-top: 12px;
+      }
+
+      .stats .value-strong {
+        font-size: 30px;
+        font-weight: 800;
+        color: #ffffff;
+        text-shadow: 0 0 14px rgba(104, 219, 255, 0.62);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
       @media (max-width: 520px) {
         .value {
           font-size: 18px;
+        }
+
+        .setup {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -321,14 +425,82 @@
           <span class="label">Status</span>
           <strong class="value" data-status>Running</strong>
         </div>
+        <div class="panel">
+          <span class="label">Time</span>
+          <strong class="value" data-time>00:00</strong>
+        </div>
       </section>
 
-      <section class="board" data-game-board aria-label="Snake board"></section>
+      <section class="setup" data-setup>
+        <div class="panel">
+          <span class="label">Time</span>
+          <select data-time-select>
+            <option value="60">1 min</option>
+            <option value="120">2 min</option>
+            <option value="180">3 min</option>
+            <option value="300">5 min</option>
+            <option value="600">10 min</option>
+          </select>
+        </div>
+        <div class="panel">
+          <span class="label">Speed</span>
+          <select data-speed-select>
+            <option value="slow">Slow-mo</option>
+            <option value="speedy" selected>Speedy</option>
+            <option value="rocket">Rocket</option>
+          </select>
+        </div>
+        <div class="panel">
+          <span class="label">Controls</span>
+          <select data-control-select>
+            <option value="buttons" selected>Buttons/Keys</option>
+            <option value="swipe">Swipe</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="setup-actions" data-setup>
+        <button type="button" data-start>Start</button>
+      </section>
+
+      <section class="board" data-game-board aria-label="Snake board">
+        <div class="overlay" data-countdown-overlay>
+          <div class="countdown-circle" data-countdown-value>3</div>
+        </div>
+      </section>
 
       <section class="actions">
         <button type="button" data-pause>Pause/Resume (Space)</button>
         <button type="button" data-restart>Restart (R)</button>
         <button type="button" data-install hidden>Install App</button>
+      </section>
+
+      <button type="button" class="next-button hidden" data-next>Next</button>
+
+      <section class="stats hidden panel" data-stats>
+        <span class="label">Run Stats</span>
+        <div class="stats-grid">
+          <div>
+            <span class="label">Time Played</span>
+            <strong class="value" data-stat-time>0s</strong>
+          </div>
+          <div>
+            <span class="label">Speed</span>
+            <strong class="value" data-stat-speed>Speedy</strong>
+          </div>
+          <div>
+            <span class="label">Silver Collected</span>
+            <strong class="value" data-stat-silver>0</strong>
+          </div>
+          <div>
+            <span class="label">Golden Collected</span>
+            <strong class="value" data-stat-golden>0</strong>
+          </div>
+          <div>
+            <span class="label">Score</span>
+            <strong class="value-strong" data-stat-score>0</strong>
+          </div>
+        </div>
       </section>
 
       <section class="controls" aria-label="Direction controls">
@@ -346,6 +518,6 @@
       <p class="hint">Controls: Arrow keys or WASD. Install App is available in supported browsers.</p>
     </main>
 
-    <script type="module" src="./main.js"></script>
+    <script type="module" src="./src/main.js"></script>
   </body>
 </html>
