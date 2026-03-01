@@ -1,13 +1,15 @@
-const CACHE_NAME = "snake-v6";
+const CACHE_NAME = "snake-v7";
+
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./src/main.js",
-  "./src/snakeLogic.js",
-  "./icons/icon-192.svg",
-  "./icons/icon-512.svg"
+  "./main.js",
+  "./snakeLogic.js",
+  "./icon-192.svg",
+  "./icon-512.svg"
 ];
+
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
