@@ -7,6 +7,12 @@ export const DIRECTIONS = {
   right: { x: 1, y: 0 }
 };
 
+export const FOOD_TYPES = {
+  normal: "normal",
+  silver: "silver",
+  golden: "golden"
+};
+
 export function createInitialState(randomFn = Math.random) {
   const snake = [
     { x: 8, y: 8 },
@@ -20,7 +26,11 @@ export function createInitialState(randomFn = Math.random) {
     direction: DIRECTIONS.right,
     nextDirection: DIRECTIONS.right,
     food: placeFood(GRID_SIZE, snake, randomFn),
+    foodType: FOOD_TYPES.normal,
     score: 0,
+    normalFoodEatenCount: 0,
+    silverCollected: 0,
+    goldenCollected: 0,
     gameOver: false,
     paused: false
   };
@@ -52,18 +62,11 @@ export function tick(state, randomFn = Math.random) {
 
   const direction = state.nextDirection;
   const currentHead = state.snake[0];
-  const newHead = {
+  const rawNewHead = {
     x: currentHead.x + direction.x,
     y: currentHead.y + direction.y
   };
-
-  if (isOutOfBounds(newHead, state.gridSize)) {
-    return {
-      ...state,
-      direction,
-      gameOver: true
-    };
-  }
+  const newHead = wrapPosition(rawNewHead, state.gridSize);
 
   const isEating = positionsEqual(newHead, state.food);
   const grownSnake = [newHead, ...state.snake];
@@ -79,11 +82,27 @@ export function tick(state, randomFn = Math.random) {
   }
 
   let nextFood = state.food;
+  let nextFoodType = state.foodType;
   let nextScore = state.score;
+  let nextNormalFoodEatenCount = state.normalFoodEatenCount;
+  let nextSilverCollected = state.silverCollected;
+  let nextGoldenCollected = state.goldenCollected;
   let nextGameOver = false;
 
   if (isEating) {
-    nextScore += 1;
+    if (state.foodType === FOOD_TYPES.normal) {
+      nextScore += 1;
+      nextNormalFoodEatenCount += 1;
+      nextFoodType = getNextFoodType(nextNormalFoodEatenCount);
+    } else if (state.foodType === FOOD_TYPES.silver) {
+      nextScore += 5;
+      nextSilverCollected += 1;
+      nextFoodType = FOOD_TYPES.normal;
+    } else if (state.foodType === FOOD_TYPES.golden) {
+      nextScore += 10;
+      nextGoldenCollected += 1;
+      nextFoodType = FOOD_TYPES.normal;
+    }
     nextFood = placeFood(state.gridSize, nextSnake, randomFn);
     if (nextFood === null) {
       nextGameOver = true;
@@ -95,7 +114,11 @@ export function tick(state, randomFn = Math.random) {
     direction,
     snake: nextSnake,
     food: nextFood,
+    foodType: nextFoodType,
     score: nextScore,
+    normalFoodEatenCount: nextNormalFoodEatenCount,
+    silverCollected: nextSilverCollected,
+    goldenCollected: nextGoldenCollected,
     gameOver: nextGameOver
   };
 }
@@ -121,13 +144,23 @@ function hasSelfCollision(snake) {
   return body.some((segment) => positionsEqual(head, segment));
 }
 
-function isOutOfBounds(position, gridSize) {
-  return (
-    position.x < 0 ||
-    position.y < 0 ||
-    position.x >= gridSize ||
-    position.y >= gridSize
-  );
+function wrapPosition(position, gridSize) {
+  return {
+    x: (position.x + gridSize) % gridSize,
+    y: (position.y + gridSize) % gridSize
+  };
+}
+
+function getNextFoodType(normalFoodEatenCount) {
+  if (normalFoodEatenCount > 0 && normalFoodEatenCount % 10 === 0) {
+    return FOOD_TYPES.golden;
+  }
+
+  if (normalFoodEatenCount > 0 && normalFoodEatenCount % 5 === 0) {
+    return FOOD_TYPES.silver;
+  }
+
+  return FOOD_TYPES.normal;
 }
 
 function isOppositeDirection(a, b) {
